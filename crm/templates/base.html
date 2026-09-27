@@ -1,0 +1,157 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CRM System{% endblock %} - Enterprise Dashboard</title>
+    <meta name="description" content="Modern Customer Relationship Management System for managing customers, leads, tasks, and analytics.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                               <div class="brand-title">CUSTOMER RELATIONSHIP MANAGEMENT</div>
+            </div>
+
+            <ul class="sidebar-menu">
+                <li class="menu-item">
+                    <a href="{% url 'dashboard' %}" class="menu-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                        <span class="menu-icon">📊</span>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="{% url 'customers' %}" class="menu-link {% if 'customer' in request.resolver_match.url_name %}active{% endif %}">
+                        <span class="menu-icon">👥</span>
+                        <span>Customers</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="{% url 'leads' %}" class="menu-link {% if 'lead' in request.resolver_match.url_name %}active{% endif %}">
+                        <span class="menu-icon">📞</span>
+                        <span>Leads Pipeline</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="{% url 'tasks' %}" class="menu-link {% if 'task' in request.resolver_match.url_name %}active{% endif %}">
+                        <span class="menu-icon">✅</span>
+                        <span>Tasks</span>
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="{% url 'reports' %}" class="menu-link {% if request.resolver_match.url_name == 'reports' %}active{% endif %}">
+                        <span class="menu-icon">📈</span>
+                        <span>Reports</span>
+                    </a>
+                </li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <div class="user-card">
+                    <div class="user-avatar">
+                        {{ user.username|slice:":1"|upper }}
+                    </div>
+                    <div class="user-info">
+                        <div class="user-name">{{ user.first_name|default:user.username }}</div>
+                        <span class="role-badge {% if user.profile.role == 'ADMIN' %}admin{% endif %}">
+                            {{ user.profile.role|default:"User" }}
+                        </span>
+                    </div>
+                    <a href="{% url 'logout' %}" title="Logout" style="color: var(--text-muted); text-decoration: none; font-size: 16px;">🚪</a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Wrapper -->
+        <div class="main-wrapper">
+            <!-- Topbar Header -->
+            <header class="topbar">
+                <div class="topbar-search">
+                    <span class="search-icon">🔍</span>
+                    <form action="{% url 'customers' %}" method="GET">
+                        <input type="text" name="q" placeholder="Search customers, leads..." value="{{ request.GET.q|default:'' }}">
+                    </form>
+                </div>
+
+                <div class="topbar-actions">
+                    <!-- Activities Dropdown in Navbar Header -->
+                    <div class="activities-dropdown-container">
+                        <button class="activities-toggle-btn" id="activitiesToggleBtn" title="System Activities" type="button">
+                            <span class="activities-icon">⚡</span>
+                            <span class="activities-btn-text">Activities</span>
+                            {% if navbar_activities_count > 0 %}
+                                <span class="activities-badge">{{ navbar_activities_count }}</span>
+                            {% endif %}
+                        </button>
+
+                        <div class="activities-popover" id="activitiesPopover">
+                            <div class="activities-popover-header">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="font-size: 16px;">⚡</span>
+                                    <span style="font-weight: 700; font-size: 14.5px; color: var(--text-primary);">System Activity Feed</span>
+                                </div>
+                                <span class="activities-popover-count">{{ navbar_activities_count }} Recent</span>
+                            </div>
+
+                            <div class="activities-popover-body">
+                                {% for act in navbar_activities %}
+                                    <div class="activity-popover-item">
+                                        <div class="activity-popover-icon">⚡</div>
+                                        <div class="activity-popover-content">
+                                            <div class="activity-popover-action">{{ act.action }}</div>
+                                            <div class="activity-popover-details">{{ act.details }}</div>
+                                            <div class="activity-popover-meta">
+                                                <span>{{ act.timestamp|timesince }} ago</span>
+                                                {% if act.user %}
+                                                    <span>• {{ act.user.username }}</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% empty %}
+                                    <div class="activities-empty">No recent system activities found.</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="theme-toggle-btn" id="themeToggleBtn" title="Toggle Theme">☀️</button>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <main class="page-content">
+                <!-- Messages -->
+                {% if messages %}
+                    <div class="messages-container">
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }}">
+                                <span>{{ message }}</span>
+                                <button type="button" onclick="this.parentElement.remove()" style="background: none; border: none; color: inherit; cursor: pointer;">✕</button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+
+    <script src="{% static 'js/main.js' %}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

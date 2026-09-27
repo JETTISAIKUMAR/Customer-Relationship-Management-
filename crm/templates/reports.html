@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}Performance Reports{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Analytics & Reports</h1>
+        <p class="page-subtitle">Deep dive into sales conversion metrics and team performance audits.</p>
+    </div>
+</div>
+
+<!-- Summary Metrics -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon success">📊</div>
+        <div class="stat-details">
+            <span class="stat-value">{{ conversion_rate }}%</span>
+            <span class="stat-label">Conversion Efficiency</span>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon indigo">🚀</div>
+        <div class="stat-details">
+            <span class="stat-value">{{ converted_leads }}</span>
+            <span class="stat-label">Converted Leads</span>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon cyan">👥</div>
+        <div class="stat-details">
+            <span class="stat-value">{{ total_customers }}</span>
+            <span class="stat-label">Active Customers</span>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon warning">💰</div>
+        <div class="stat-details">
+            <span class="stat-value">${{ total_pipeline_val|floatformat:2 }}</span>
+            <span class="stat-label">Total Pipeline Revenue</span>
+        </div>
+    </div>
+</div>
+
+<!-- Employee Team Performance Audit -->
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Team Member Performance Audit</h3>
+    </div>
+    <div class="table-responsive">
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>Employee Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Assigned Leads</th>
+                    <th>Assigned Customers</th>
+                    <th>Assigned Tasks</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for emp in employee_stats %}
+                    <tr>
+                        <td style="font-weight: 600;">👤 {{ emp.first_name|default:emp.username }} {{ emp.last_name }}</td>
+                        <td>{{ emp.email }}</td>
+                        <td>
+                            <span class="role-badge {% if emp.profile.role == 'ADMIN' %}admin{% endif %}">
+                                {{ emp.profile.role|default:"User" }}
+                            </span>
+                        </td>
+                        <td style="font-weight: 700; color: var(--accent-secondary);">{{ emp.assigned_leads }}</td>
+                        <td style="font-weight: 700; color: var(--accent-success);">{{ emp.assigned_customers }}</td>
+                        <td style="font-weight: 700; color: var(--accent-warning);">{{ emp.assigned_tasks }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 20px;">No employee data recorded.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

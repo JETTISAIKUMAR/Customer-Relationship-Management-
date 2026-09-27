@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block title %}Task Management{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Tasks & Workflows</h1>
+        <p class="page-subtitle">Track task assignments, priority levels, and completion statuses.</p>
+    </div>
+    <a href="{% url 'add_task' %}" class="btn btn-primary">+ Create New Task</a>
+</div>
+
+<!-- Task Status Filter Bar -->
+<div style="display: flex; gap: 10px; margin-bottom: 20px;">
+    <a href="{% url 'tasks' %}" class="btn {% if not selected_status %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">All Tasks</a>
+    <a href="{% url 'tasks' %}?status=Pending" class="btn {% if selected_status == 'Pending' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">Pending</a>
+    <a href="{% url 'tasks' %}?status=In Progress" class="btn {% if selected_status == 'In Progress' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">In Progress</a>
+    <a href="{% url 'tasks' %}?status=Done" class="btn {% if selected_status == 'Done' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">Completed</a>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>Task Title</th>
+                    <th>Assigned Employee</th>
+                    <th>Priority</th>
+                    <th>Status</th>
+                    <th>Due Date</th>
+                    <th>Quick Toggle</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for task in tasks %}
+                    <tr>
+                        <td>
+                            <div style="font-weight: 600;">{{ task.title }}</div>
+                            <small style="color: var(--text-muted);">{{ task.description|truncatewords:8 }}</small>
+                        </td>
+                        <td>
+                            <span class="badge badge-new">👤 {{ task.assigned_to.username }}</span>
+                        </td>
+                        <td>
+                            <span class="badge badge-{{ task.priority|lower }}">{{ task.priority }}</span>
+                        </td>
+                        <td>
+                            <span class="badge {% if task.status == 'Done' %}badge-converted{% elif task.status == 'In Progress' %}badge-progress{% else %}badge-new{% endif %}">
+                                {{ task.status }}
+                            </span>
+                        </td>
+                        <td>{{ task.due_date|date:"M d, Y"|default:"No due date" }}</td>
+                        <td>
+                            <a href="{% url 'toggle_task' task.id %}" class="btn btn-secondary btn-sm" title="Advance Status">
+                                {% if task.status == 'Pending' %}
+                                    ▶ Start
+                                {% elif task.status == 'In Progress' %}
+                                    ✔ Mark Done
+                                {% else %}
+                                    🔄 Reopen
+                                {% endif %}
+                            </a>
+                        </td>
+                        <td>
+                            <div style="display: flex; gap: 8px;">
+                                <a href="{% url 'edit_task' task.id %}" class="btn btn-secondary btn-sm" title="Edit">✏️</a>
+                                <a href="{% url 'delete_task' task.id %}" class="btn btn-danger btn-sm" onclick="return confirm('Delete task {{ task.title }}?')" title="Delete">🗑️</a>
+                            </div>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 24px;">
+                            No tasks found in this view. Click <strong>+ Create New Task</strong> to assign work.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Executive Dashboard</h1>
+        <p class="page-subtitle">Overview of customers, lead conversion pipeline, and active task progress.</p>
+    </div>
+    <div style="display: flex; gap: 12px;">
+        <a href="{% url 'add_lead' %}" class="btn btn-primary">+ Add New Lead</a>
+        <a href="{% url 'add_customer' %}" class="btn btn-secondary">+ Add Customer</a>
+    </div>
+</div>
+
+<!-- Stat Cards Grid -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon indigo">👥</div>
+        <div class="stat-details">
+            <span class="stat-value">{{ total_customers }}</span>
+            <span class="stat-label">Total Customers</span>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon cyan">📞</div>
+        <div class="stat-details">
+            <span class="stat-value">{{ total_leads }}</span>
+            <span class="stat-label">Active Leads</span>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon warning">✅</div>
+        <div class="stat-details">
+            <span class="stat-value">{{ pending_tasks }}</span>
+            <span class="stat-label">Pending Tasks</span>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon success">🚀</div>
+        <div class="stat-details">
+            <span class="stat-value">{{ conversion_rate }}%</span>
+            <span class="stat-label">Conversion Rate</span>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon indigo" style="background: var(--gradient-primary);">💰</div>
+        <div class="stat-details">
+            <span class="stat-value">${{ total_deal_val|floatformat:2 }}</span>
+            <span class="stat-label">Pipeline Value</span>
+        </div>
+    </div>
+</div>
+
+<!-- Dashboard Visual Charts -->
+<div class="dashboard-grid">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Lead Acquisition Channels</h3>
+        </div>
+        <div style="height: 280px; position: relative;">
+            <canvas id="leadSourceChart"></canvas>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Lead Pipeline Status</h3>
+        </div>
+        <div style="height: 280px; position: relative;">
+            <canvas id="leadStatusChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Tasks & Activity Log -->
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+    <!-- Recent Tasks Card -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Priority Tasks</h3>
+            <a href="{% url 'tasks' %}" class="btn btn-secondary btn-sm">View All</a>
+        </div>
+        <div class="table-responsive">
+            <table class="custom-table">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Assigned</th>
+                        <th>Priority</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for task in recent_tasks %}
+                        <tr>
+                            <td style="font-weight: 600;">{{ task.title }}</td>
+                            <td>{{ task.assigned_to.username }}</td>
+                            <td>
+                                <span class="badge badge-{{ task.priority|lower }}">{{ task.priority }}</span>
+                            </td>
+                            <td>
+                                <span class="badge {% if task.status == 'Done' %}badge-converted{% elif task.status == 'In Progress' %}badge-progress{% else %}badge-new{% endif %}">
+                                    {{ task.status }}
+                                </span>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="4" style="text-align: center; color: var(--text-muted);">No recent tasks assigned.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Activity Feed Card -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">System Activity Log</h3>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 14px; max-height: 300px; overflow-y: auto;">
+            {% for act in recent_activities %}
+                <div style="display: flex; gap: 12px; align-items: flex-start; padding-bottom: 10px; border-bottom: 1px solid var(--border-color);">
+                    <div style="width: 32px; height: 32px; border-radius: var(--radius-full); background: rgba(99,102,241,0.2); display: flex; align-items: center; justify-content: center; font-size: 14px; color: #818cf8; flex-shrink: 0;">⚡</div>
+                    <div>
+                        <div style="font-size: 13.5px; font-weight: 600;">{{ act.action }}</div>
+                        <div style="font-size: 12.5px; color: var(--text-secondary);">{{ act.details }}</div>
+                        <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">{{ act.timestamp|timesince }} ago {% if act.user %}by {{ act.user.username }}{% endif %}</div>
+                    </div>
+                </div>
+            {% empty %}
+                <div style="text-align: center; color: var(--text-muted); padding: 20px;">No recent system activities.</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const statusLabels = {{ status_labels_json|safe }};
+    const statusData = {{ status_data_json|safe }};
+
+    const sourceLabels = {{ source_labels_json|safe }};
+    const sourceData = {{ source_data_json|safe }};
+
+    // Lead Status Doughnut Chart
+    if (document.getElementById('leadStatusChart')) {
+        new Chart(document.getElementById('leadStatusChart').getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: statusLabels.length ? statusLabels : ['New', 'Contacted', 'In Progress', 'Converted', 'Lost'],
+                datasets: [{
+                    data: statusData.length ? statusData : [1, 1, 1, 1, 1],
+                    backgroundColor: ['#6366f1', '#06b6d4', '#f59e0b', '#10b981', '#ef4444'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { color: '#475569', font: { family: 'Inter' } } }
+                }
+            }
+        });
+    }
+
+    // Lead Source Bar Chart
+    if (document.getElementById('leadSourceChart')) {
+        new Chart(document.getElementById('leadSourceChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: sourceLabels.length ? sourceLabels : ['Website', 'Referral', 'Cold Call', 'Social Media', 'Event'],
+                datasets: [{
+                    label: 'Leads Count',
+                    data: sourceData.length ? sourceData : [0, 0, 0, 0, 0],
+                    backgroundColor: 'rgba(99, 102, 241, 0.85)',
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { ticks: { color: '#64748b' }, grid: { color: 'rgba(0,0,0,0.06)' } },
+                    x: { ticks: { color: '#64748b' }, grid: { display: false } }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    }
+</script>
+{% endblock %}

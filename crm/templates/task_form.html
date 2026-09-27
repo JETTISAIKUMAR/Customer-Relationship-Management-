@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">{{ title }}</h1>
+        <p class="page-subtitle">Configure task title, priority level, assignee, and due date.</p>
+    </div>
+    <a href="{% url 'tasks' %}" class="btn btn-secondary">← Back to Tasks</a>
+</div>
+
+<div class="card" style="max-width: 680px; margin: 0 auto;">
+    <form method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+            <label class="form-label">Task Title *</label>
+            {{ form.title }}
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Task Description</label>
+            {{ form.description }}
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="form-group">
+                <label class="form-label">Assigned Employee *</label>
+                {{ form.assigned_to }}
+            </div>
+            <div class="form-group">
+                <label class="form-label">Priority Level</label>
+                {{ form.priority }}
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="form-group">
+                <label class="form-label">Status</label>
+                {{ form.status }}
+            </div>
+            <div class="form-group">
+                <label class="form-label">Due Date</label>
+                {{ form.due_date }}
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 10px;">
+            <a href="{% url 'tasks' %}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">Save Task</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

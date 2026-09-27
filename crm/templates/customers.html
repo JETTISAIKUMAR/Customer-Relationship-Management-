@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}Customers{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Customer Directory</h1>
+        <p class="page-subtitle">View and manage all active client profiles and contacts.</p>
+    </div>
+    <a href="{% url 'add_customer' %}" class="btn btn-primary">+ Add New Customer</a>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">All Customers ({{ customers|length }})</h3>
+        <form method="GET" action="{% url 'customers' %}" style="display: flex; gap: 10px;">
+            <input type="text" name="q" class="form-input" style="padding: 6px 14px; font-size: 13px;" placeholder="Search name or company..." value="{{ query }}">
+            <button type="submit" class="btn btn-secondary btn-sm">Search</button>
+        </form>
+    </div>
+
+    <div class="table-responsive">
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>Customer Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Company</th>
+                    <th>Assigned Representative</th>
+                    <th>Joined Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for customer in customers %}
+                    <tr>
+                        <td style="font-weight: 600;">
+                            <a href="{% url 'detail_customer' customer.id %}" style="color: inherit; text-decoration: none;">
+                                👤 {{ customer.name }}
+                            </a>
+                        </td>
+                        <td>{{ customer.email }}</td>
+                        <td>{{ customer.phone }}</td>
+                        <td>{{ customer.company|default:"-" }}</td>
+                        <td>
+                            {% if customer.assigned_to %}
+                                <span class="badge badge-new">{{ customer.assigned_to.username }}</span>
+                            {% else %}
+                                <span style="color: var(--text-muted);">-</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ customer.created_at|date:"M d, Y" }}</td>
+                        <td>
+                            <div style="display: flex; gap: 8px;">
+                                <a href="{% url 'detail_customer' customer.id %}" class="btn btn-secondary btn-sm" title="View Details">👁️</a>
+                                <a href="{% url 'edit_customer' customer.id %}" class="btn btn-secondary btn-sm" title="Edit">✏️</a>
+                                <a href="{% url 'delete_customer' customer.id %}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete {{ customer.name }}?')" title="Delete">🗑️</a>
+                            </div>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 24px;">
+                            No customers found. Click <strong>+ Add New Customer</strong> to get started.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

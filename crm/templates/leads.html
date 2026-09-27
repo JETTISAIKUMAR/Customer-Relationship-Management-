@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}Leads Pipeline{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Leads Pipeline</h1>
+        <p class="page-subtitle">Track prospective clients, estimate deal values, and convert leads to customers.</p>
+    </div>
+    <a href="{% url 'add_lead' %}" class="btn btn-primary">+ Add New Lead</a>
+</div>
+
+<!-- Status Filter Bar -->
+<div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+    <a href="{% url 'leads' %}" class="btn {% if not selected_status %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">All Leads</a>
+    <a href="{% url 'leads' %}?status=New" class="btn {% if selected_status == 'New' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">New</a>
+    <a href="{% url 'leads' %}?status=Contacted" class="btn {% if selected_status == 'Contacted' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">Contacted</a>
+    <a href="{% url 'leads' %}?status=In Progress" class="btn {% if selected_status == 'In Progress' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">In Progress</a>
+    <a href="{% url 'leads' %}?status=Converted" class="btn {% if selected_status == 'Converted' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">Converted</a>
+    <a href="{% url 'leads' %}?status=Lost" class="btn {% if selected_status == 'Lost' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">Lost</a>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Pipeline Leads ({{ leads|length }})</h3>
+        <form method="GET" action="{% url 'leads' %}" style="display: flex; gap: 10px;">
+            <input type="text" name="q" class="form-input" style="padding: 6px 14px; font-size: 13px;" placeholder="Search lead or company..." value="{{ query }}">
+            <button type="submit" class="btn btn-secondary btn-sm">Search</button>
+        </form>
+    </div>
+
+    <div class="table-responsive">
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>Lead Name</th>
+                    <th>Email / Phone</th>
+                    <th>Source</th>
+                    <th>Status</th>
+                    <th>Est Value</th>
+                    <th>Assigned To</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for lead in leads %}
+                    <tr>
+                        <td style="font-weight: 600;">
+                            <div>{{ lead.name }}</div>
+                            <small style="color: var(--text-muted);">{{ lead.company }}</small>
+                        </td>
+                        <td>
+                            <div>{{ lead.email }}</div>
+                            <small style="color: var(--text-muted);">{{ lead.phone }}</small>
+                        </td>
+                        <td><span class="badge badge-new">{{ lead.source }}</span></td>
+                        <td>
+                            {% if lead.status == 'New' %}
+                                <span class="badge badge-new">New</span>
+                            {% elif lead.status == 'Contacted' %}
+                                <span class="badge badge-contacted">Contacted</span>
+                            {% elif lead.status == 'In Progress' %}
+                                <span class="badge badge-progress">In Progress</span>
+                            {% elif lead.status == 'Converted' %}
+                                <span class="badge badge-converted">Converted</span>
+                            {% else %}
+                                <span class="badge badge-lost">Lost</span>
+                            {% endif %}
+                        </td>
+                        <td style="font-weight: 700; color: var(--accent-success);">${{ lead.value|floatformat:2 }}</td>
+                        <td>{{ lead.assigned_to.username|default:"Unassigned" }}</td>
+                        <td>
+                            <div style="display: flex; gap: 8px;">
+                                {% if lead.status != 'Converted' %}
+                                    <a href="{% url 'convert_lead' lead.id %}" class="btn btn-success btn-sm" onclick="return confirm('Convert {{ lead.name }} to Customer account?')" title="Convert to Customer">🚀 Convert</a>
+                                {% endif %}
+                                <a href="{% url 'edit_lead' lead.id %}" class="btn btn-secondary btn-sm" title="Edit">✏️</a>
+                                <a href="{% url 'delete_lead' lead.id %}" class="btn btn-danger btn-sm" onclick="return confirm('Delete lead {{ lead.name }}?')" title="Delete">🗑️</a>
+                            </div>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 24px;">
+                            No leads in this view. Click <strong>+ Add New Lead</strong> to create one.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

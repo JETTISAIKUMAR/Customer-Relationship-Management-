@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">{{ title }}</h1>
+        <p class="page-subtitle">Enter details for prospective sales leads.</p>
+    </div>
+    <a href="{% url 'leads' %}" class="btn btn-secondary">← Back to Leads</a>
+</div>
+
+<div class="card" style="max-width: 680px; margin: 0 auto;">
+    <form method="POST">
+        {% csrf_token %}
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="form-group">
+                <label class="form-label">Lead Name *</label>
+                {{ form.name }}
+            </div>
+            <div class="form-group">
+                <label class="form-label">Email Address *</label>
+                {{ form.email }}
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="form-group">
+                <label class="form-label">Phone Number *</label>
+                {{ form.phone }}
+            </div>
+            <div class="form-group">
+                <label class="form-label">Company Name</label>
+                {{ form.company }}
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="form-group">
+                <label class="form-label">Acquisition Source</label>
+                {{ form.source }}
+            </div>
+            <div class="form-group">
+                <label class="form-label">Pipeline Status</label>
+                {{ form.status }}
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="form-group">
+                <label class="form-label">Estimated Deal Value ($)</label>
+                {{ form.value }}
+            </div>
+            <div class="form-group">
+                <label class="form-label">Assigned Representative</label>
+                {{ form.assigned_to }}
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 10px;">
+            <a href="{% url 'leads' %}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">Save Lead Record</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">{{ title }}</h1>
+        <p class="page-subtitle">Fill in the contact information for the customer account.</p>
+    </div>
+    <a href="{% url 'customers' %}" class="btn btn-secondary">← Back to Customers</a>
+</div>
+
+<div class="card" style="max-width: 680px; margin: 0 auto;">
+    <form method="POST">
+        {% csrf_token %}
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="form-group">
+                <label class="form-label">Full Name *</label>
+                {{ form.name }}
+            </div>
+            <div class="form-group">
+                <label class="form-label">Email Address *</label>
+                {{ form.email }}
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="form-group">
+                <label class="form-label">Phone Number *</label>
+                {{ form.phone }}
+            </div>
+            <div class="form-group">
+                <label class="form-label">Company / Organization</label>
+                {{ form.company }}
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Assigned Sales Representative</label>
+            {{ form.assigned_to }}
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Notes & Requirements</label>
+            {{ form.notes }}
+        </div>
+
+        <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 10px;">
+            <a href="{% url 'customers' %}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">Save Customer Account</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

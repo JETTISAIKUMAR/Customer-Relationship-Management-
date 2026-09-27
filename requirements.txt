@@ -1,0 +1,3 @@
+
+cohere_YdcJtlmNw0auKzX8gK2IgWyhQ5MKIHBjMNPyNBJF28M4x4
+api key we have to store
